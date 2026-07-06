@@ -96,11 +96,12 @@
   #padHint{ text-align:center; font-size:13px; color:var(--text-dim); margin-bottom:28px; }
   #fileInput{ display:none; }
 
-  #examplesLabel{
+  .exCategory{ margin-bottom:24px; }
+  .examplesLabel{
     font-size:12px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase;
     color:var(--text-dimmer); margin-bottom:12px;
   }
-  #examplesGrid{
+  .examplesGrid{
     display:grid; grid-template-columns:repeat(auto-fill, minmax(84px,1fr)); gap:14px;
   }
   .exTile{ display:flex; flex-direction:column; align-items:center; gap:6px; }
@@ -227,8 +228,7 @@
   </div>
   <div id="padHint">Tap to trace a PNG</div>
   <input type="file" id="fileInput" accept="image/png,image/jpeg">
-  <div id="examplesLabel">Examples</div>
-  <div id="examplesGrid"></div>
+  <div id="examplesContainer"></div>
 </div>
 
 <div id="workspace">
@@ -509,13 +509,10 @@ function scoreAgainst(canvas, refCanvas) {
 // UI wiring
 // ============================================================
 
-const FEATURED = [
-  "apple_core","avocado_pit","banana_peel","bread_crust","broccoli","cardboard_tube",
-  "corn_cob","dead_flower","dried_leaves","egg_shell","fish_bone","grass_clippings",
-  "lettuce","melon_rind","mushroom","newspaper","orange_peel","overripe_fruit",
-  "pasta","pizza","potato","root_bulb","straw_clump","tea_bag","walnut_shell",
-  "watermelon_chunk","whole_tomato"
-];
+// EXAMPLES_BASE stays empty for the real hosted repo (relative paths,
+// same-origin). Only the standalone/embedded (e.g. artifact preview) copy
+// of this file overrides it with an absolute URL.
+const EXAMPLES_BASE = '';
 
 const home = document.getElementById('home');
 const workspace = document.getElementById('workspace');
@@ -523,7 +520,7 @@ const backBtn = document.getElementById('backBtn');
 const infoBtn = document.getElementById('infoBtn');
 const sheetOverlay = document.getElementById('sheetOverlay');
 const closeSheetBtn = document.getElementById('closeSheetBtn');
-const examplesGrid = document.getElementById('examplesGrid');
+const examplesContainer = document.getElementById('examplesContainer');
 const pickBtn = document.getElementById('pickBtn');
 const fileInput = document.getElementById('fileInput');
 const refImg = document.getElementById('refImg');
@@ -553,15 +550,40 @@ function toast(msg) {
   toastEl._t = setTimeout(() => toastEl.classList.remove('show'), 2600);
 }
 
-function renderExamples() {
-  FEATURED.forEach(name => {
-    const tile = document.createElement('div');
-    tile.className = 'exTile';
-    tile.innerHTML = `<div class="exIcon"><img src="examples/${name}.png" alt=""></div>
-      <div class="exLabel">${name.replace(/_/g, ' ')}</div>`;
-    tile.addEventListener('click', () => loadFromPath(`examples/${name}.png`, name));
-    examplesGrid.appendChild(tile);
-  });
+// Examples are driven entirely by examples/manifest.json — adding a new
+// set of example PNGs never requires touching this file. Drop PNGs in
+// examples/<your-folder>/ and add one entry to the manifest listing the
+// folder name, a display label, and the filenames (without .png).
+async function renderExamples() {
+  try {
+    const resp = await fetch(`${EXAMPLES_BASE}examples/manifest.json`);
+    const manifest = await resp.json();
+    for (const category of manifest.categories) {
+      const section = document.createElement('div');
+      section.className = 'exCategory';
+
+      const label = document.createElement('div');
+      label.className = 'examplesLabel';
+      label.textContent = category.label || category.folder;
+      section.appendChild(label);
+
+      const grid = document.createElement('div');
+      grid.className = 'examplesGrid';
+      category.files.forEach(name => {
+        const path = `${EXAMPLES_BASE}examples/${category.folder}/${name}.png`;
+        const tile = document.createElement('div');
+        tile.className = 'exTile';
+        tile.innerHTML = `<div class="exIcon"><img src="${path}" crossorigin="anonymous" alt=""></div>
+          <div class="exLabel">${name.replace(/_/g, ' ')}</div>`;
+        tile.addEventListener('click', () => loadFromPath(path, name));
+        grid.appendChild(tile);
+      });
+      section.appendChild(grid);
+      examplesContainer.appendChild(section);
+    }
+  } catch (e) {
+    toast("Couldn't load the examples list.");
+  }
 }
 
 function showWorkspace() {
