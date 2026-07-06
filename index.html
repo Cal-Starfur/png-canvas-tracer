@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PNG Tracer">
+<meta name="theme-color" content="#000000">
+<title>PNG Canvas Tracer</title>
+<style>
+  :root{
+    --bg:#000000;
+    --surface:rgba(255,255,255,0.06);
+    --surface-border:rgba(255,255,255,0.09);
+    --accent:#E8A33D;
+    --text:#F5F5F7;
+    --text-dim:rgba(245,245,247,0.5);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%; margin:0; overflow:hidden;}
+  body{
+    font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+    background:
+      radial-gradient(ellipse 90% 50% at 50% 0%, rgba(232,163,61,0.05), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    height:100vh;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:18px; padding:0 40px; text-align:center;
+  }
+  h1{ font-size:20px; font-weight:700; letter-spacing:-0.02em; margin:0; }
+  p{ font-size:14px; color:var(--text-dim); max-width:420px; line-height:1.5; margin:0; }
+  .pill{
+    font-size:12.5px; color:var(--text-dim); padding:5px 12px; border-radius:20px;
+    background:var(--surface); border:1px solid var(--surface-border);
+  }
+</style>
+</head>
+<body>
+  <h1>PNG Canvas Tracer</h1>
+  <p>Scaffold only — the tool itself isn't built yet.</p>
+  <p>Once built: pick any PNG (or choose one from <code>examples/</code>) and it traces the flat color regions into copyable HTML5 canvas <code>drawArt()</code> code — same launcher-style shape as <a href="https://github.com/Cal-Starfur/rocket-launcher" style="color:var(--accent)">rocket-launcher</a>.</p>
+  <div class="pill">27 example PNGs staged in /examples</div>
+</body>
+</html>
