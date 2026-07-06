@@ -1,0 +1,16 @@
+{
+  "categories": [
+    {
+      "folder": "trash-chunks",
+      "label": "Trash Chunks (Wigglers Room)",
+      "files": [
+        "apple_core", "avocado_pit", "banana_peel", "bread_crust", "broccoli",
+        "cardboard_tube", "corn_cob", "dead_flower", "dried_leaves", "egg_shell",
+        "fish_bone", "grass_clippings", "lettuce", "melon_rind", "mushroom",
+        "newspaper", "orange_peel", "overripe_fruit", "pasta", "pizza",
+        "potato", "root_bulb", "straw_clump", "tea_bag", "walnut_shell",
+        "watermelon_chunk", "whole_tomato"
+      ]
+    }
+  ]
+}
