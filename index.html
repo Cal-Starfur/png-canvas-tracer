@@ -623,13 +623,14 @@ copyBtn.addEventListener('click', async () => {
 });
 
 downloadBtn.addEventListener('click', () => {
-  const blob = new Blob([codeArea.value], { type: 'text/javascript' });
-  const url = URL.createObjectURL(blob);
+  // Use a data: URI rather than a blob: URL — some sandboxed WebViews
+  // (e.g. Documents by Readdle with "Block external links" enabled)
+  // treat blob URLs as external resources and block the download.
+  const dataUri = 'data:text/javascript;charset=utf-8,' + encodeURIComponent(codeArea.value);
   const a = document.createElement('a');
-  a.href = url;
+  a.href = dataUri;
   a.download = `${currentAssetName}.js`;
   a.click();
-  URL.revokeObjectURL(url);
 });
 
 renderExamples();
