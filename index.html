@@ -38,8 +38,13 @@
 
   /* ---------- Header ---------- */
   #header{
-    display:flex; align-items:center; justify-content:flex-end;
+    display:flex; align-items:center; justify-content:space-between;
     padding:18px 20px 6px;
+  }
+  #infoBtn{
+    width:32px; height:32px; border-radius:50%; border:none;
+    background:var(--surface); color:var(--text-dim); font-size:13px; font-weight:600;
+    font-family:-apple-system, sans-serif; font-style:italic;
   }
   #backBtn{
     display:none;
@@ -50,7 +55,6 @@
 
   /* ---------- Home / examples grid ---------- */
   #home{ padding:10px 20px 40px; }
-  #homeHint{ font-size:13px; color:var(--text-dim); margin:4px 0 18px; }
 
   #pickBtn{
     width:100%; padding:16px; border-radius:16px; border:1px solid var(--surface-border);
@@ -150,16 +154,39 @@
   .spinner{ width:28px; height:28px; border-radius:50%; border:3px solid var(--surface-border);
     border-top-color:var(--accent); animation:spin .8s linear infinite; }
   @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  /* ---------- Info sheet ---------- */
+  #sheetOverlay{
+    position:fixed; inset:0; background:rgba(0,0,0,0.4);
+    display:none; align-items:flex-end; z-index:35;
+  }
+  #sheetOverlay.show{ display:flex; }
+  #sheet{
+    width:100%; background:rgba(28,28,30,0.86); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
+    border-radius:22px 22px 0 0;
+    padding:10px 22px calc(26px + env(safe-area-inset-bottom));
+    transform:translateY(100%); transition:transform .32s cubic-bezier(.32,.72,0,1);
+    border:1px solid var(--hairline); border-bottom:none;
+  }
+  #sheetOverlay.show #sheet{ transform:translateY(0); }
+  .grabber{ width:36px; height:4px; background:rgba(255,255,255,0.22); border-radius:2px; margin:8px auto 18px; }
+  #sheet h2{ margin:0 0 12px; font-size:19px; font-weight:700; letter-spacing:-0.01em; color:var(--text); }
+  #sheet p{ margin:0 0 12px; color:var(--text-dim); font-size:14px; line-height:1.55; }
+  #sheet p b{ color:var(--text); font-weight:600; }
+  #closeSheetBtn{
+    width:100%; padding:14px; border-radius:14px; border:none;
+    background:var(--accent); color:#1a1200; font-size:16px; font-weight:700; margin-top:8px;
+  }
 </style>
 </head>
 <body>
 
 <div id="header">
+  <button id="infoBtn">i</button>
   <button id="backBtn">Examples</button>
 </div>
 
 <div id="home">
-  <div id="homeHint">Pick a PNG, or choose one of the bundled examples to trace it into HTML5 canvas code.</div>
   <button id="pickBtn">Choose a PNG</button>
   <input type="file" id="fileInput" accept="image/png,image/jpeg">
   <div id="examplesLabel">Examples</div>
@@ -200,6 +227,16 @@
   <div id="codeBtns">
     <button id="copyBtn">Copy</button>
     <button id="downloadBtn">Download .js</button>
+  </div>
+</div>
+
+<div id="sheetOverlay">
+  <div id="sheet">
+    <div class="grabber"></div>
+    <h2>How this works</h2>
+    <p>Pick a PNG, or choose one of the bundled examples below, and it traces the flat color regions into copyable HTML5 canvas <b>drawArt()</b> code.</p>
+    <p>Best for flat illustrated art and icons with clear shapes. Photorealistic images and complex textures won't trace well.</p>
+    <button id="closeSheetBtn">Got it</button>
   </div>
 </div>
 
@@ -445,6 +482,9 @@ const FEATURED = [
 const home = document.getElementById('home');
 const workspace = document.getElementById('workspace');
 const backBtn = document.getElementById('backBtn');
+const infoBtn = document.getElementById('infoBtn');
+const sheetOverlay = document.getElementById('sheetOverlay');
+const closeSheetBtn = document.getElementById('closeSheetBtn');
 const examplesGrid = document.getElementById('examplesGrid');
 const pickBtn = document.getElementById('pickBtn');
 const fileInput = document.getElementById('fileInput');
@@ -497,6 +537,10 @@ function showHome() {
   backBtn.classList.remove('show');
 }
 backBtn.addEventListener('click', showHome);
+
+infoBtn.addEventListener('click', () => sheetOverlay.classList.add('show'));
+closeSheetBtn.addEventListener('click', () => sheetOverlay.classList.remove('show'));
+sheetOverlay.addEventListener('click', (e) => { if (e.target === sheetOverlay) sheetOverlay.classList.remove('show'); });
 
 function loadFromPath(path, name) {
   currentAssetName = name;
