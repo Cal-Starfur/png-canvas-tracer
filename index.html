@@ -56,11 +56,44 @@
   /* ---------- Home / examples grid ---------- */
   #home{ padding:10px 20px 40px; }
 
-  #pickBtn{
-    width:100%; padding:16px; border-radius:16px; border:1px solid var(--surface-border);
-    background:var(--accent-dim); color:var(--accent); font-size:15px; font-weight:700;
-    margin-bottom:26px;
+  #pad{ position:relative; width:160px; height:160px; margin:14px auto 10px; display:flex; align-items:center; justify-content:center; }
+  #glow{
+    position:absolute; width:130px; height:130px; border-radius:50%;
+    background:radial-gradient(circle, var(--accent-dim), transparent 70%);
+    filter:blur(4px);
+    animation:breathe 3.6s ease-in-out infinite;
   }
+  @keyframes breathe{
+    0%, 100%{ transform:scale(1); opacity:0.6; }
+    50%{ transform:scale(1.22); opacity:1; }
+  }
+  /* Glass material lives on its own layer, separate from anything with its
+     own `filter`, since combining the two corrupts rendering on iOS Safari. */
+  #glassSurface{
+    position:absolute; z-index:1; width:104px; height:104px; border-radius:30px;
+    background:rgba(232,163,61,0.34);
+    backdrop-filter:blur(22px) saturate(190%);
+    -webkit-backdrop-filter:blur(22px) saturate(190%);
+    box-shadow:0 10px 24px rgba(0,0,0,0.45);
+  }
+  #pickBtn{
+    position:relative; z-index:2; width:104px; height:104px; border-radius:30px;
+    border:1px solid rgba(255,255,255,0.32); background:transparent;
+    display:flex; align-items:center; justify-content:center;
+    font-size:38px; color:rgba(20,12,0,0.7);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -1px 0 rgba(0,0,0,0.18);
+    transition:transform .15s cubic-bezier(.34,1.4,.6,1);
+  }
+  #pickBtn::after{
+    content:''; position:absolute; inset:0; border-radius:29px;
+    background:
+      linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 28%),
+      linear-gradient(180deg, rgba(255,255,255,0.22), transparent 55%);
+    pointer-events:none;
+  }
+  #pickBtn:active{ transform:scale(0.94); }
+  #wandGlyph{ display:inline-block; filter:brightness(0); }
+  #padHint{ text-align:center; font-size:13px; color:var(--text-dim); margin-bottom:28px; }
   #fileInput{ display:none; }
 
   #examplesLabel{
@@ -187,7 +220,12 @@
 </div>
 
 <div id="home">
-  <button id="pickBtn">Choose a PNG</button>
+  <div id="pad">
+    <div id="glow"></div>
+    <div id="glassSurface"></div>
+    <button id="pickBtn"><span id="wandGlyph">🪄</span></button>
+  </div>
+  <div id="padHint">Tap to trace a PNG</div>
   <input type="file" id="fileInput" accept="image/png,image/jpeg">
   <div id="examplesLabel">Examples</div>
   <div id="examplesGrid"></div>
