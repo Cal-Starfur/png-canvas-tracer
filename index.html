@@ -171,7 +171,7 @@
 <div id="workspace">
   <div id="scoreRow">
     <div id="scoreValue">—</div>
-    <div id="scoreLabel">match</div>
+    <div id="scoreLabel">foreground match</div>
   </div>
 
   <div id="canvasRow">
@@ -215,7 +215,8 @@
 // ============================================================
 
 function extractColors(imgData, maxColors, quantStep) {
-  quantStep = quantStep || 24;
+  quantStep = quantStep || 12;
+  const mergeMult = 1.2;
   const { data } = imgData;
   const counts = new Map();
   for (let i = 0; i < data.length; i += 4) {
@@ -233,7 +234,7 @@ function extractColors(imgData, maxColors, quantStep) {
     const [r, g, b] = key.split(',').map(Number);
     const tooClose = picked.some(p => {
       const d = (p.r - r) ** 2 + (p.g - g) ** 2 + (p.b - b) ** 2;
-      return d < (quantStep * 3) ** 2;
+      return d < (quantStep * mergeMult) ** 2;
     });
     if (!tooClose) picked.push({ r, g, b, count });
   }
@@ -407,13 +408,24 @@ function drawRegions(canvas, regions, order) {
   }
 }
 
+// Foreground-only accuracy: only counts pixels where either image shows
+// content. A whole-canvas average (including transparent background)
+// lets background agreement mask real foreground mismatches — a flat,
+// texture-less trace can score 95%+ that way while looking clearly wrong.
 function scoreAgainst(canvas, refCanvas) {
   const w = canvas.width, h = canvas.height;
-  const a = canvas.getContext('2d').getImageData(0, 0, w, h).data;
-  const b = refCanvas.getContext('2d').getImageData(0, 0, w, h).data;
-  let totalDiff = 0;
-  for (let i = 0; i < a.length; i++) totalDiff += Math.abs(a[i] - b[i]);
-  return 1 - totalDiff / (255 * a.length);
+  const out = canvas.getContext('2d').getImageData(0, 0, w, h).data;
+  const ref = refCanvas.getContext('2d').getImageData(0, 0, w, h).data;
+  let fgTotal = 0, fgGood = 0;
+  for (let p = 0; p < out.length; p += 4) {
+    const refA = ref[p + 3], outA = out[p + 3];
+    if (refA <= 20 && outA <= 20) continue; // both transparent — not foreground, skip
+    fgTotal++;
+    const dr = Math.abs(out[p] - ref[p]), dg = Math.abs(out[p + 1] - ref[p + 1]),
+          db = Math.abs(out[p + 2] - ref[p + 2]), da = Math.abs(outA - refA);
+    if (dr <= 25 && dg <= 25 && db <= 25 && da <= 25) fgGood++;
+  }
+  return fgTotal === 0 ? 1 : fgGood / fgTotal;
 }
 
 // ============================================================
@@ -582,7 +594,7 @@ function redrawAndScore() {
   drawRegions(tracedCanvas, currentRegions, currentOrder);
   const sim = scoreAgainst(tracedCanvas, currentRefCanvas);
   scoreValue.textContent = (sim * 100).toFixed(1) + '%';
-  scoreValue.style.color = sim >= 0.95 ? 'var(--good)' : sim >= 0.85 ? 'var(--warn)' : 'var(--bad)';
+  scoreValue.style.color = sim >= 0.85 ? 'var(--good)' : sim >= 0.65 ? 'var(--warn)' : 'var(--bad)';
   codeArea.value = generateCode(currentRegions, currentOrder);
 }
 
