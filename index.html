@@ -215,22 +215,26 @@
 // ============================================================
 
 function extractColors(imgData, maxColors, quantStep) {
-  quantStep = quantStep || 12;
-  const mergeMult = 1.2;
+  quantStep = quantStep || 24;
+  const mergeMult = 3;
   const { data } = imgData;
   const counts = new Map();
+  let totalVisible = 0;
   for (let i = 0; i < data.length; i += 4) {
     if (data[i + 3] <= 20) continue;
+    totalVisible++;
     const r = Math.floor(data[i] / quantStep) * quantStep;
     const g = Math.floor(data[i + 1] / quantStep) * quantStep;
     const b = Math.floor(data[i + 2] / quantStep) * quantStep;
     const key = r + ',' + g + ',' + b;
     counts.set(key, (counts.get(key) || 0) + 1);
   }
+  const minCount = Math.max(3, totalVisible * 0.01); // ignore fragments under ~1% of the art
   const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
   const picked = [];
   for (const [key, count] of sorted) {
     if (picked.length >= maxColors) break;
+    if (count < minCount) break; // remaining are even smaller, sorted descending
     const [r, g, b] = key.split(',').map(Number);
     const tooClose = picked.some(p => {
       const d = (p.r - r) ** 2 + (p.g - g) ** 2 + (p.b - b) ** 2;
