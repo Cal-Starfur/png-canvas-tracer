@@ -86,9 +86,10 @@
     position:absolute; left:0; right:0; bottom:0; z-index:4;
     padding:24px 12px 12px; text-align:center;
     background:linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0) 90%);
+    opacity:0; transition:opacity .25s ease; pointer-events:none;
   }
-  .folderLabel{ font-size:12.5px; font-weight:700; color:#fff; line-height:1.25; }
-  .folderCount{ font-size:10.5px; color:rgba(255,255,255,0.7); margin-top:2px; }
+  .folderRow:hover .folderInfo, .folderInfo.show{ opacity:1; }
+  .folderLabel{ font-size:13px; font-weight:700; color:#fff; line-height:1.25; }
 
   #pad{ position:relative; width:160px; height:160px; margin:14px auto 10px; display:flex; align-items:center; justify-content:center; }
   #glow{
@@ -727,9 +728,16 @@ async function loadManifestAndRenderFolders() {
         <div class="folderStack">${stackHtml}</div>
         <div class="folderInfo">
           <div class="folderLabel">${category.label || category.folder}</div>
-          <div class="folderCount">${category.files.length} examples</div>
         </div>`;
       row.addEventListener('click', () => openCategory(category));
+      // CSS :hover covers desktop/mouse; touch devices have no real hover
+      // state, so show the caption on active press instead (same pattern
+      // as the pad hint).
+      const info = row.querySelector('.folderInfo');
+      row.addEventListener('pointerdown', () => info.classList.add('show'));
+      row.addEventListener('pointerup', () => info.classList.remove('show'));
+      row.addEventListener('pointerleave', () => info.classList.remove('show'));
+      row.addEventListener('pointercancel', () => info.classList.remove('show'));
       foldersList.appendChild(row);
     });
   } catch (e) {
