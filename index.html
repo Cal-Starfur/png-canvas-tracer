@@ -68,11 +68,16 @@
     background:var(--surface); border:1px solid var(--surface-border);
   }
   .folderRow:active{ background:rgba(255,255,255,0.1); }
-  .folderIcon{
-    width:44px; height:44px; border-radius:13px; flex-shrink:0;
-    background:var(--accent-dim); display:flex; align-items:center; justify-content:center;
-    font-size:20px;
+  .folderStack{ position:relative; width:52px; height:48px; flex-shrink:0; }
+  .stackImg{
+    position:absolute; width:30px; height:30px; border-radius:9px; box-sizing:border-box;
+    background:var(--surface); border:1px solid var(--surface-border); padding:3px;
+    box-shadow:0 3px 7px rgba(0,0,0,0.4);
   }
+  .stackImg img{ width:100%; height:100%; object-fit:contain; image-rendering:pixelated; display:block; }
+  .stackImg.s2{ top:1px; left:17px; transform:rotate(14deg); z-index:1; }
+  .stackImg.s1{ top:3px; left:1px; transform:rotate(-13deg); z-index:2; }
+  .stackImg.s0{ top:10px; left:10px; transform:rotate(0deg); z-index:3; }
   .folderInfo{ flex:1; min-width:0; }
   .folderLabel{ font-size:15px; font-weight:600; color:var(--text); }
   .folderCount{ font-size:12px; color:var(--text-dim); margin-top:2px; }
@@ -258,7 +263,7 @@
   </div>
   <div id="padHint">Tap to trace a PNG</div>
   <input type="file" id="fileInput" accept="image/png,image/jpeg">
-  <div class="examplesLabel">Examples</div>
+  <div class="examplesLabel">Shared PNG Library</div>
   <div id="foldersList"></div>
 </div>
 
@@ -604,8 +609,24 @@ async function loadManifestAndRenderFolders() {
     manifest.categories.forEach(category => {
       const row = document.createElement('div');
       row.className = 'folderRow';
+
+      // Pick up to 3 spread-out files (first, middle, last) so the stack
+      // hints at the category's variety rather than just its first item.
+      // Stacking order (front/middle/back) is controlled by z-index in CSS
+      // (.s0 = front, .s1 = middle, .s2 = back), so DOM order doesn't matter.
+      const files = category.files;
+      const pickIdx = files.length <= 3
+        ? files.map((_, i) => i)
+        : [0, Math.floor(files.length / 2), files.length - 1];
+      const stackClasses = ['s2', 's1', 's0']; // back to front, matches pickIdx order
+      const stackHtml = pickIdx.map((fileIdx, i) => {
+        const path = `${EXAMPLES_BASE}examples/${category.folder}/${files[fileIdx]}.png`;
+        const cls = stackClasses[stackClasses.length - pickIdx.length + i];
+        return `<div class="stackImg ${cls}"><img src="${path}" crossorigin="anonymous" alt=""></div>`;
+      }).join('');
+
       row.innerHTML = `
-        <div class="folderIcon">📁</div>
+        <div class="folderStack">${stackHtml}</div>
         <div class="folderInfo">
           <div class="folderLabel">${category.label || category.folder}</div>
           <div class="folderCount">${category.files.length} examples</div>
