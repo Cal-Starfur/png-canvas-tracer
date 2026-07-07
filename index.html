@@ -313,7 +313,7 @@
 
 function extractColors(imgData, maxColors, quantStep) {
   quantStep = quantStep || 24;
-  const mergeMult = 3;
+  const mergeMult = 1.5;
   const { data } = imgData;
   const counts = new Map();
   let totalVisible = 0;
