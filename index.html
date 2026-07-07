@@ -334,8 +334,13 @@
 
 <script>
 // ============================================================
-// Trace engine — pure JS, validated against Node prototype at
-// ≥97% similarity on real game assets. No dependencies.
+// Trace engine — pure JS, no dependencies. Deterministic: same
+// input always produces the same output, no model/API in the loop.
+// Foreground-only accuracy typically lands 70-90% on simple flat-
+// silhouette assets, lower on textured/many-color ones (shading
+// and gradients are a real ceiling for flat vector fills, not
+// something parameter tuning fixes). See scoreAgainst() below for
+// why foreground-only, not whole-canvas-average, scoring is used.
 // ============================================================
 
 function extractColors(imgData, maxColors, quantStep) {
