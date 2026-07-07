@@ -114,7 +114,7 @@
     pointer-events:none;
   }
   #pickBtn:active{ transform:scale(0.94); }
-  #wandGlyph{ display:inline-block; filter:brightness(0); }
+  #wandGlyph{ display:block; }
   #padHint{ text-align:center; font-size:13px; color:var(--text-dim); margin-bottom:28px; }
   #fileInput{ display:none; }
 
@@ -245,7 +245,16 @@
   <div id="pad">
     <div id="glow"></div>
     <div id="glassSurface"></div>
-    <button id="pickBtn"><span id="wandGlyph">🪄</span></button>
+    <button id="pickBtn">
+      <svg id="wandGlyph" viewBox="0 0 100 100" width="42" height="42">
+        <g transform="translate(50,50) rotate(-40)">
+          <rect x="-6.5" y="6" width="13" height="48" rx="5.5" fill="#2a1c0c"/>
+          <path d="M0,-42 L4.5,-30 L17,-25.5 L4.5,-21 L0,-9 L-4.5,-21 L-17,-25.5 L-4.5,-30 Z" fill="#fff6e6"/>
+          <path d="M21,-15 L23,-8.5 L29.5,-6.5 L23,-4.5 L21,2 L19,-4.5 L12.5,-6.5 L19,-8.5 Z" fill="#fff6e6" opacity="0.9"/>
+          <path d="M-19,-4.5 L-20,-1 L-24.5,0 L-20,1 L-19,4.5 L-18,1 L-13.5,0 L-18,-1 Z" fill="#fff6e6" opacity="0.75"/>
+        </g>
+      </svg>
+    </button>
   </div>
   <div id="padHint">Tap to trace a PNG</div>
   <input type="file" id="fileInput" accept="image/png,image/jpeg">
