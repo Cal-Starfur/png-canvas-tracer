@@ -272,7 +272,7 @@
     </button>
   </div>
   <div id="padHint">Tap to trace</div>
-  <input type="file" id="fileInput" accept="image/png">
+  <input type="file" id="fileInput" accept=".png">
   <div class="examplesLabel">PNG Library</div>
   <div id="foldersList"></div>
 </div>
@@ -809,6 +809,11 @@ pickBtn.addEventListener('pointercancel', () => padHint.classList.remove('show')
 fileInput.addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
+  if (file.type !== 'image/png') {
+    toast('Please choose a PNG file — this tool needs real transparency to trace correctly.');
+    fileInput.value = '';
+    return;
+  }
   currentCategory = null; // manual pick — no category to return to on back
   currentAssetName = file.name.replace(/\.[^.]+$/, '');
   const reader = new FileReader();
