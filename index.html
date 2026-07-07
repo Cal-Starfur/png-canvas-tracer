@@ -243,7 +243,7 @@
 
 <div id="header">
   <button id="infoBtn">i</button>
-  <button id="backBtn">Examples</button>
+  <button id="backBtn">Home</button>
 </div>
 
 <div id="home">
@@ -656,7 +656,7 @@ function openCategory(category) {
   home.style.display = 'none';
   categoryScreen.classList.add('show');
   backBtn.classList.add('show');
-  backBtn.textContent = 'Examples';
+  backBtn.textContent = 'Home';
 }
 
 function showWorkspace() {
@@ -664,7 +664,7 @@ function showWorkspace() {
   categoryScreen.classList.remove('show');
   workspace.classList.add('show');
   backBtn.classList.add('show');
-  backBtn.textContent = currentCategory ? currentCategory.label : 'Examples';
+  backBtn.textContent = currentCategory ? currentCategory.label : 'Home';
 }
 function showHome() {
   workspace.classList.remove('show');
@@ -678,7 +678,7 @@ backBtn.addEventListener('click', () => {
     // Return to the category grid we opened this trace from, not all the way home
     workspace.classList.remove('show');
     categoryScreen.classList.add('show');
-    backBtn.textContent = 'Examples';
+    backBtn.textContent = 'Home';
   } else {
     showHome();
   }
