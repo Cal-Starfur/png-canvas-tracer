@@ -120,7 +120,11 @@
   }
   #pickBtn:active{ transform:scale(0.94); }
   #wandGlyph{ display:block; }
-  #padHint{ text-align:center; font-size:13px; color:var(--text-dim); margin-bottom:28px; }
+  #padHint{
+    text-align:center; font-size:13px; color:var(--text-dim); margin-bottom:28px;
+    opacity:0; transition:opacity .25s ease; pointer-events:none;
+  }
+  #pad:hover + #padHint, #padHint.show{ opacity:1; }
   #fileInput{ display:none; }
 
   .examplesLabel{
@@ -261,7 +265,7 @@
       </svg>
     </button>
   </div>
-  <div id="padHint">Tap to trace a PNG</div>
+  <div id="padHint">Tap to trace</div>
   <input type="file" id="fileInput" accept="image/png,image/jpeg">
   <div class="examplesLabel">Shared PNG Library</div>
   <div id="foldersList"></div>
@@ -652,6 +656,7 @@ const foldersList = document.getElementById('foldersList');
 const categoryHeading = document.getElementById('categoryHeading');
 const examplesContainer = document.getElementById('examplesContainer');
 const pickBtn = document.getElementById('pickBtn');
+const padHint = document.getElementById('padHint');
 const fileInput = document.getElementById('fileInput');
 const refImg = document.getElementById('refImg');
 const tracedCanvas = document.getElementById('tracedCanvas');
@@ -783,6 +788,12 @@ function loadFromPath(path, name) {
 }
 
 pickBtn.addEventListener('click', () => fileInput.click());
+// CSS :hover covers desktop/mouse; touch devices have no real hover state,
+// so show the hint on active press instead.
+pickBtn.addEventListener('pointerdown', () => padHint.classList.add('show'));
+pickBtn.addEventListener('pointerup', () => padHint.classList.remove('show'));
+pickBtn.addEventListener('pointerleave', () => padHint.classList.remove('show'));
+pickBtn.addEventListener('pointercancel', () => padHint.classList.remove('show'));
 fileInput.addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
