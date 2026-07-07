@@ -1,0 +1,13 @@
+{
+  "name": "PNG Canvas Tracer",
+  "short_name": "PNG Tracer",
+  "description": "Trace flat-illustrated PNGs into HTML5 canvas drawArt() code.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
