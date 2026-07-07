@@ -56,6 +56,25 @@
   /* ---------- Home / examples grid ---------- */
   #home{ padding:10px 20px 40px; }
 
+  #categoryScreen{ display:none; padding:10px 20px 40px; }
+  #categoryScreen.show{ display:block; }
+
+  #foldersList{ display:flex; flex-direction:column; gap:10px; }
+  .folderRow{
+    display:flex; align-items:center; gap:14px; padding:14px 16px; border-radius:16px;
+    background:var(--surface); border:1px solid var(--surface-border);
+  }
+  .folderRow:active{ background:rgba(255,255,255,0.1); }
+  .folderIcon{
+    width:44px; height:44px; border-radius:13px; flex-shrink:0;
+    background:var(--accent-dim); display:flex; align-items:center; justify-content:center;
+    font-size:20px;
+  }
+  .folderInfo{ flex:1; min-width:0; }
+  .folderLabel{ font-size:15px; font-weight:600; color:var(--text); }
+  .folderCount{ font-size:12px; color:var(--text-dim); margin-top:2px; }
+  .folderChevron{ color:var(--text-dimmer); font-size:18px; }
+
   #pad{ position:relative; width:160px; height:160px; margin:14px auto 10px; display:flex; align-items:center; justify-content:center; }
   #glow{
     position:absolute; width:130px; height:130px; border-radius:50%;
@@ -96,7 +115,6 @@
   #padHint{ text-align:center; font-size:13px; color:var(--text-dim); margin-bottom:28px; }
   #fileInput{ display:none; }
 
-  .exCategory{ margin-bottom:24px; }
   .examplesLabel{
     font-size:12px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase;
     color:var(--text-dimmer); margin-bottom:12px;
@@ -228,7 +246,13 @@
   </div>
   <div id="padHint">Tap to trace a PNG</div>
   <input type="file" id="fileInput" accept="image/png,image/jpeg">
-  <div id="examplesContainer"></div>
+  <div class="examplesLabel">Examples</div>
+  <div id="foldersList"></div>
+</div>
+
+<div id="categoryScreen">
+  <div id="categoryHeading" class="examplesLabel"></div>
+  <div id="examplesContainer" class="examplesGrid"></div>
 </div>
 
 <div id="workspace">
@@ -515,11 +539,14 @@ function scoreAgainst(canvas, refCanvas) {
 const EXAMPLES_BASE = '';
 
 const home = document.getElementById('home');
+const categoryScreen = document.getElementById('categoryScreen');
 const workspace = document.getElementById('workspace');
 const backBtn = document.getElementById('backBtn');
 const infoBtn = document.getElementById('infoBtn');
 const sheetOverlay = document.getElementById('sheetOverlay');
 const closeSheetBtn = document.getElementById('closeSheetBtn');
+const foldersList = document.getElementById('foldersList');
+const categoryHeading = document.getElementById('categoryHeading');
 const examplesContainer = document.getElementById('examplesContainer');
 const pickBtn = document.getElementById('pickBtn');
 const fileInput = document.getElementById('fileInput');
@@ -542,6 +569,7 @@ let currentRefCanvas = null;
 let currentRegions = [];
 let currentOrder = [];
 let currentAssetName = 'traced';
+let currentCategory = null; // category the workspace was opened from, for back-navigation
 
 function toast(msg) {
   toastEl.textContent = msg;
@@ -554,49 +582,74 @@ function toast(msg) {
 // set of example PNGs never requires touching this file. Drop PNGs in
 // examples/<your-folder>/ and add one entry to the manifest listing the
 // folder name, a display label, and the filenames (without .png).
-async function renderExamples() {
+// Home shows one collapsed folder tile per category; tapping a folder
+// drills into that category's actual example grid, so the home screen
+// never has to show all bundled PNGs at once.
+async function loadManifestAndRenderFolders() {
   try {
     const resp = await fetch(`${EXAMPLES_BASE}examples/manifest.json`);
     const manifest = await resp.json();
-    for (const category of manifest.categories) {
-      const section = document.createElement('div');
-      section.className = 'exCategory';
-
-      const label = document.createElement('div');
-      label.className = 'examplesLabel';
-      label.textContent = category.label || category.folder;
-      section.appendChild(label);
-
-      const grid = document.createElement('div');
-      grid.className = 'examplesGrid';
-      category.files.forEach(name => {
-        const path = `${EXAMPLES_BASE}examples/${category.folder}/${name}.png`;
-        const tile = document.createElement('div');
-        tile.className = 'exTile';
-        tile.innerHTML = `<div class="exIcon"><img src="${path}" crossorigin="anonymous" alt=""></div>
-          <div class="exLabel">${name.replace(/_/g, ' ')}</div>`;
-        tile.addEventListener('click', () => loadFromPath(path, name));
-        grid.appendChild(tile);
-      });
-      section.appendChild(grid);
-      examplesContainer.appendChild(section);
-    }
+    manifest.categories.forEach(category => {
+      const row = document.createElement('div');
+      row.className = 'folderRow';
+      row.innerHTML = `
+        <div class="folderIcon">📁</div>
+        <div class="folderInfo">
+          <div class="folderLabel">${category.label || category.folder}</div>
+          <div class="folderCount">${category.files.length} examples</div>
+        </div>
+        <div class="folderChevron">›</div>`;
+      row.addEventListener('click', () => openCategory(category));
+      foldersList.appendChild(row);
+    });
   } catch (e) {
     toast("Couldn't load the examples list.");
   }
 }
 
+function openCategory(category) {
+  currentCategory = category;
+  categoryHeading.textContent = category.label || category.folder;
+  examplesContainer.innerHTML = '';
+  category.files.forEach(name => {
+    const path = `${EXAMPLES_BASE}examples/${category.folder}/${name}.png`;
+    const tile = document.createElement('div');
+    tile.className = 'exTile';
+    tile.innerHTML = `<div class="exIcon"><img src="${path}" crossorigin="anonymous" alt=""></div>
+      <div class="exLabel">${name.replace(/_/g, ' ')}</div>`;
+    tile.addEventListener('click', () => loadFromPath(path, name));
+    examplesContainer.appendChild(tile);
+  });
+  home.style.display = 'none';
+  categoryScreen.classList.add('show');
+  backBtn.classList.add('show');
+  backBtn.textContent = 'Examples';
+}
+
 function showWorkspace() {
   home.style.display = 'none';
+  categoryScreen.classList.remove('show');
   workspace.classList.add('show');
   backBtn.classList.add('show');
+  backBtn.textContent = currentCategory ? currentCategory.label : 'Examples';
 }
 function showHome() {
   workspace.classList.remove('show');
+  categoryScreen.classList.remove('show');
   home.style.display = 'block';
   backBtn.classList.remove('show');
+  currentCategory = null;
 }
-backBtn.addEventListener('click', showHome);
+backBtn.addEventListener('click', () => {
+  if (workspace.classList.contains('show') && currentCategory) {
+    // Return to the category grid we opened this trace from, not all the way home
+    workspace.classList.remove('show');
+    categoryScreen.classList.add('show');
+    backBtn.textContent = 'Examples';
+  } else {
+    showHome();
+  }
+});
 
 infoBtn.addEventListener('click', () => sheetOverlay.classList.add('show'));
 closeSheetBtn.addEventListener('click', () => sheetOverlay.classList.remove('show'));
@@ -614,6 +667,7 @@ pickBtn.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
+  currentCategory = null; // manual pick — no category to return to on back
   currentAssetName = file.name.replace(/\.[^.]+$/, '');
   const reader = new FileReader();
   reader.onload = (ev) => {
@@ -735,7 +789,7 @@ downloadBtn.addEventListener('click', () => {
   a.click();
 });
 
-renderExamples();
+loadManifestAndRenderFolders();
 </script>
 </body>
 </html>
